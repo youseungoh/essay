@@ -1,0 +1,2181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>자율논술 — 학교 자율시간 논술 생성기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+:root {
+  --gray-50:  #fafafa;
+  --gray-100: #f5f5f5;
+  --gray-200: #e5e5e5;
+  --gray-300: #d4d4d4;
+  --gray-400: #a3a3a3;
+  --gray-500: #737373;
+  --gray-600: #525252;
+  --gray-700: #404040;
+  --gray-800: #262626;
+  --gray-900: #171717;
+  --white: #ffffff;
+
+  --accent:        #18a07a;
+  --accent-light:  #e8f8f3;
+  --accent-mid:    #0f7a5a;
+  --blue:          #2563eb;
+  --blue-light:    #eff6ff;
+  --blue-mid:      #1d4ed8;
+  --amber:         #d97706;
+  --amber-light:   #fffbeb;
+  --red:           #dc2626;
+  --red-light:     #fef2f2;
+  --purple:        #7c3aed;
+  --purple-light:  #f5f3ff;
+
+  --border:   #e5e5e5;
+  --border-2: #d4d4d4;
+  --shadow-xs: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,.06), 0 1px 3px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.04);
+  --r-sm: 8px;
+  --r:    12px;
+  --r-lg: 16px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--gray-50);
+  color: var(--gray-900);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─────────────────────────────
+   HEADER
+───────────────────────────── */
+.app-header {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  height: 58px;
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  box-shadow: var(--shadow-xs);
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+}
+.logo-icon {
+  width: 32px; height: 32px;
+  background: var(--accent);
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.logo-icon svg { color: white; }
+.logo-text {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--gray-900);
+  letter-spacing: -.3px;
+}
+.logo-text span { color: var(--accent); }
+.header-divider { width: 1px; height: 20px; background: var(--border); }
+.header-sub { font-size: 12px; color: var(--gray-400); }
+.header-spacer { flex: 1; }
+.header-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent-light);
+  color: var(--accent-mid);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+/* ─────────────────────────────
+   MODE NAV
+───────────────────────────── */
+.mode-nav {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  display: flex;
+  gap: 2px;
+}
+.mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 14px 18px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--gray-500);
+  cursor: pointer;
+  border: none;
+  background: none;
+  border-bottom: 2.5px solid transparent;
+  transition: color .15s, border-color .15s;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.mode-btn svg { flex-shrink: 0; }
+.mode-btn:hover { color: var(--gray-800); }
+.mode-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 700; }
+.mode-btn.active svg { color: var(--accent); }
+
+/* ─────────────────────────────
+   LAYOUT
+───────────────────────────── */
+.app-body { max-width: 1280px; margin: 0 auto; padding: 28px 24px; }
+.two-col {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ─────────────────────────────
+   SIDE PANEL
+───────────────────────────── */
+.side-panel {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.side-panel-head {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.side-panel-head svg { color: var(--gray-500); }
+.side-panel-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--gray-600);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+}
+.side-panel-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 18px; }
+
+/* API 알림 */
+.api-banner {
+  background: var(--amber-light);
+  border: 1px solid #fde68a;
+  border-radius: var(--r-sm);
+  padding: 12px 14px;
+}
+.api-banner-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #92400e;
+  margin-bottom: 8px;
+}
+.api-banner-top svg { color: #d97706; flex-shrink: 0; }
+.api-banner p { font-size: 11.5px; color: #92400e; line-height: 1.5; margin-bottom: 8px; }
+.api-key-row { display: flex; gap: 6px; }
+.api-key-row input {
+  flex: 1;
+  padding: 7px 10px;
+  border: 1px solid #fcd34d;
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  background: white;
+  font-family: 'Noto Sans KR', sans-serif;
+  color: var(--gray-800);
+}
+.api-key-row input:focus { outline: none; border-color: var(--amber); }
+.btn-amber {
+  padding: 7px 14px;
+  background: var(--amber);
+  color: white;
+  border: none;
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  white-space: nowrap;
+  transition: background .15s;
+}
+.btn-amber:hover { background: #b45309; }
+
+/* 필드 */
+.field { display: flex; flex-direction: column; gap: 7px; }
+.field-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gray-700);
+}
+.field-label svg { color: var(--gray-400); }
+.req { font-size: 10.5px; color: var(--red); margin-left: 2px; }
+.field-hint { font-size: 11px; color: var(--gray-400); }
+
+/* 학교급 버튼 */
+.level-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.level-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 11px 6px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--white);
+  cursor: pointer;
+  transition: all .15s;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.level-btn .lv-icon {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--gray-100);
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.level-btn .lv-icon svg { color: var(--gray-500); transition: color .15s; }
+.level-btn .lv-name { font-size: 12px; font-weight: 700; color: var(--gray-700); }
+.level-btn .lv-sub  { font-size: 10px; color: var(--gray-400); }
+.level-btn:hover { border-color: var(--accent); background: var(--accent-light); }
+.level-btn:hover .lv-icon { background: var(--accent-light); }
+.level-btn:hover .lv-icon svg { color: var(--accent); }
+.level-btn.active { border-color: var(--accent); background: var(--accent-light); }
+.level-btn.active .lv-icon { background: var(--accent); }
+.level-btn.active .lv-icon svg { color: white; }
+.level-btn.active .lv-name { color: var(--accent-mid); }
+
+/* 태그 */
+.tag-wrap { display: flex; flex-wrap: wrap; gap: 5px; }
+.tag-btn {
+  padding: 4px 11px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--white);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gray-500);
+  cursor: pointer;
+  transition: all .14s;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.tag-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.tag-btn.active { border-color: var(--accent); background: var(--accent); color: white; }
+
+/* 직접입력 */
+.custom-wrap { display: none; margin-top: 4px; }
+.custom-wrap.show { display: block; }
+.custom-wrap input {
+  width: 100%;
+  padding: 8px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  font-size: 12.5px;
+  font-family: 'Noto Sans KR', sans-serif;
+  color: var(--gray-800);
+  background: var(--white);
+  transition: border .15s;
+}
+.custom-wrap input:focus { outline: none; border-color: var(--accent); }
+
+/* select */
+.styled-select {
+  width: 100%;
+  padding: 9px 32px 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  font-family: 'Noto Sans KR', sans-serif;
+  color: var(--gray-800);
+  background: var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a3a3a3' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 10px center;
+  appearance: none;
+  transition: border .15s;
+  cursor: pointer;
+}
+.styled-select:focus { outline: none; border-color: var(--accent); }
+
+/* 생성 버튼 */
+.gen-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--r-sm);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: all .18s;
+  box-shadow: 0 2px 8px rgba(24,160,122,.25);
+}
+.gen-btn:hover:not(:disabled) {
+  background: var(--accent-mid);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(24,160,122,.35);
+}
+.gen-btn:disabled { background: var(--gray-300); cursor: not-allowed; box-shadow: none; transform: none; }
+
+/* ─────────────────────────────
+   RESULT PANEL
+───────────────────────────── */
+.result-panel {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.result-tabs {
+  display: flex;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  padding: 0 4px;
+}
+.result-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 13px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-500);
+  cursor: pointer;
+  border: none;
+  background: none;
+  border-bottom: 2.5px solid transparent;
+  white-space: nowrap;
+  transition: all .15s;
+  font-family: 'Noto Sans KR', sans-serif;
+  margin-bottom: -1px;
+}
+.result-tab svg { flex-shrink: 0; }
+.result-tab:hover { color: var(--gray-800); background: var(--white); }
+.result-tab.active {
+  color: var(--blue);
+  border-bottom-color: var(--blue);
+  background: var(--white);
+  font-weight: 700;
+}
+.result-tab.active svg { color: var(--blue); }
+
+.result-content { padding: 28px; min-height: 520px; }
+
+/* 빈 상태 / 로딩 */
+.empty-state, .loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 420px;
+  gap: 14px;
+  text-align: center;
+}
+.empty-icon {
+  width: 64px; height: 64px;
+  border-radius: 18px;
+  background: var(--gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.empty-icon svg { color: var(--gray-400); }
+.empty-state h3 { font-size: 16px; font-weight: 600; color: var(--gray-700); }
+.empty-state p { font-size: 13px; color: var(--gray-400); max-width: 280px; line-height: 1.6; }
+
+.spinner-ring {
+  width: 44px; height: 44px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-state .loading-text { font-size: 14px; font-weight: 600; color: var(--gray-700); }
+.loading-state .loading-sub  { font-size: 12px; color: var(--gray-400); }
+
+/* ─────────────────────────────
+   TAB① 논술 예시문
+───────────────────────────── */
+.essay-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.chip svg { width: 11px; height: 11px; }
+.chip-g { background: var(--accent-light); color: var(--accent-mid); }
+.chip-b { background: var(--blue-light); color: var(--blue-mid); }
+.chip-p { background: var(--purple-light); color: var(--purple); }
+.chip-a { background: var(--amber-light); color: var(--amber); }
+
+.essay-title { font-family: 'Noto Serif KR', serif; font-size: 21px; font-weight: 700; color: var(--gray-900); margin-bottom: 22px; line-height: 1.4; }
+.essay-body { line-height: 1.95; font-size: 14.5px; }
+.part-block { margin-bottom: 22px; }
+.part-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px 3px 8px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  letter-spacing: .03em;
+}
+.part-label svg { width: 11px; height: 11px; }
+.pl-intro  { background: var(--blue-light);   color: var(--blue-mid); }
+.pl-body   { background: var(--accent-light);  color: var(--accent-mid); }
+.pl-outro  { background: var(--amber-light);   color: var(--amber); }
+.essay-para { margin-bottom: 10px; color: var(--gray-800); }
+.char-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  margin-top: 20px;
+  padding: 10px 14px;
+  background: var(--gray-50);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--gray-500);
+}
+.char-bar svg { color: var(--gray-400); }
+
+/* ─────────────────────────────
+   TAB② 학습지
+───────────────────────────── */
+.ws-wrap { font-family: 'Noto Serif KR', serif; }
+.ws-top {
+  text-align: center;
+  padding: 0 0 22px;
+  border-bottom: 2px solid var(--gray-900);
+  margin-bottom: 22px;
+}
+.ws-top h2 { font-size: 21px; font-weight: 700; margin-bottom: 6px; color: var(--gray-900); }
+.ws-top p  { font-size: 12px; color: var(--gray-500); }
+.ws-meta { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 22px; }
+.ws-meta-box { border: 1px solid var(--gray-900); padding: 8px 12px; border-radius: 6px; }
+.ws-meta-box label { display: block; font-size: 10px; font-weight: 700; color: var(--gray-500); margin-bottom: 5px; font-family: 'Noto Sans KR', sans-serif; letter-spacing: .04em; text-transform: uppercase; }
+.ws-meta-line { height: 22px; border-bottom: 1px solid var(--gray-400); }
+.ws-sec { margin-bottom: 22px; }
+.ws-sec-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-left: 4px solid var(--gray-900);
+  background: var(--gray-100);
+  margin-bottom: 12px;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.ws-sec-title svg { color: var(--gray-600); }
+.ws-outline { width: 100%; border-collapse: collapse; font-family: 'Noto Sans KR', sans-serif; }
+.ws-outline th, .ws-outline td { border: 1px solid var(--gray-900); padding: 9px 11px; font-size: 12px; vertical-align: top; }
+.ws-outline th { background: var(--gray-100); font-weight: 700; text-align: center; width: 72px; white-space: nowrap; }
+.ws-outline td { height: 62px; }
+.ws-hint { font-size: 11px; color: var(--gray-400); }
+.ws-write-box { border: 1px solid var(--gray-900); border-radius: 6px; height: 260px; background-image: repeating-linear-gradient(transparent, transparent 31px, var(--gray-200) 31px, var(--gray-200) 32px); background-size: 100% 32px; }
+.ws-checklist { display: flex; flex-direction: column; gap: 7px; font-family: 'Noto Sans KR', sans-serif; }
+.ws-check-item { display: flex; align-items: flex-start; gap: 9px; padding: 9px 12px; background: var(--gray-50); border: 1px solid var(--border); border-radius: var(--r-sm); font-size: 12.5px; }
+.ws-check-box { width: 17px; height: 17px; border: 1.5px solid var(--gray-400); border-radius: 4px; flex-shrink: 0; margin-top: 1px; }
+.kw-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.kw-chip { padding: 4px 11px; background: var(--accent-light); color: var(--accent-mid); border-radius: 20px; font-size: 11.5px; font-weight: 600; }
+
+/* ─────────────────────────────
+   TAB③ 루브릭
+───────────────────────────── */
+.rubric-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+.rubric-top-left h2 { font-family: 'Noto Serif KR', serif; font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.rubric-top-left p  { font-size: 12px; color: var(--gray-500); }
+.rubric-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent-light);
+  color: var(--accent-mid);
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: var(--r-sm);
+  white-space: nowrap;
+}
+.rubric-badge svg { color: var(--accent); }
+
+.rubric-tbl { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
+.rubric-tbl thead th { background: var(--gray-900); color: white; padding: 10px 12px; font-size: 12px; text-align: left; }
+.rubric-tbl thead th:first-child { border-radius: 8px 0 0 0; }
+.rubric-tbl thead th:last-child  { border-radius: 0 8px 0 0; }
+.rubric-tbl tbody tr { border-bottom: 1px solid var(--border); transition: background .12s; }
+.rubric-tbl tbody tr:hover { background: var(--gray-50); }
+.rubric-tbl tbody tr:last-child { border-bottom: none; }
+.rubric-tbl tbody td { padding: 12px; vertical-align: top; font-size: 13px; }
+.ra-name { font-weight: 700; font-size: 13px; margin-bottom: 3px; color: var(--gray-900); }
+.ra-sub  { font-size: 11px; color: var(--gray-500); }
+.score-pts { font-weight: 700; color: var(--gray-500); font-size: 13px; text-align: center; }
+.sc-hi  { color: #15803d; font-size: 12.5px; line-height: 1.5; }
+.sc-mid { color: #b45309; font-size: 12.5px; line-height: 1.5; }
+.sc-lo  { color: var(--red); font-size: 12.5px; line-height: 1.5; }
+
+.grade-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 22px; }
+.grade-card { padding: 14px 16px; border-radius: var(--r-sm); text-align: center; }
+.gc-a { background: #f0fdf4; border: 1px solid #bbf7d0; }
+.gc-b { background: var(--amber-light); border: 1px solid #fde68a; }
+.gc-c { background: var(--red-light); border: 1px solid #fecaca; }
+.grade-card .gc-score { font-size: 20px; font-weight: 700; }
+.grade-card .gc-label { font-size: 12px; margin-top: 3px; font-weight: 600; }
+.gc-a .gc-score { color: #15803d; }
+.gc-a .gc-label { color: #166534; }
+.gc-b .gc-score { color: var(--amber); }
+.gc-b .gc-label { color: #92400e; }
+.gc-c .gc-score { color: var(--red); }
+.gc-c .gc-label { color: #991b1b; }
+
+.score-panel { border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; }
+.score-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 14px;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 700;
+}
+.score-panel-head svg { color: var(--gray-500); }
+.score-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.score-row:last-of-type { border-bottom: none; }
+.score-row-name { font-size: 12.5px; font-weight: 600; color: var(--gray-700); }
+.score-btns { display: flex; gap: 3px; }
+.s-btn {
+  width: 30px; height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--white);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--gray-500);
+  cursor: pointer;
+  transition: all .12s;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.s-btn:hover { border-color: var(--accent); color: var(--accent); }
+.s-btn.sel   { background: var(--accent); color: white; border-color: var(--accent); }
+.score-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: var(--accent-light);
+  margin: 0 14px 14px;
+  border-radius: var(--r-sm);
+}
+.score-total-label { font-size: 13.5px; font-weight: 700; color: var(--accent-mid); }
+.score-total-val   { font-size: 26px; font-weight: 700; color: var(--accent); }
+
+/* ─────────────────────────────
+   TAB④ 학습 가이드
+───────────────────────────── */
+.guide-hero {
+  background: var(--gray-900);
+  border-radius: var(--r);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  color: white;
+}
+.guide-hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.guide-hero h3 { font-family: 'Noto Serif KR', serif; font-size: 17px; font-weight: 700; }
+.guide-hero p  { font-size: 12.5px; color: rgba(255,255,255,.55); margin-top: 4px; }
+.guide-type-pill {
+  background: rgba(255,255,255,.12);
+  color: rgba(255,255,255,.8);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.guide-card { border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; margin-bottom: 14px; }
+.guide-card-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 14px;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--border);
+}
+.guide-card-head .step-num {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: white;
+  flex-shrink: 0;
+}
+.sn-g { background: var(--accent); }
+.sn-b { background: var(--blue); }
+.sn-p { background: var(--purple); }
+.sn-a { background: var(--amber); }
+.sn-r { background: var(--red); }
+.guide-card-head span { font-size: 13px; font-weight: 700; color: var(--gray-800); }
+.guide-card-body { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+
+.type-summary { padding: 13px 15px; background: var(--accent-light); border-radius: var(--r-sm); font-size: 13.5px; color: var(--gray-800); line-height: 1.75; }
+
+.flow-row { display: flex; align-items: center; overflow-x: auto; padding: 4px 0; gap: 0; }
+.flow-node { text-align: center; padding: 10px 14px; border-radius: var(--r-sm); min-width: 82px; flex-shrink: 0; }
+.flow-node .fn-title { font-size: 11.5px; font-weight: 700; }
+.flow-node .fn-sub   { font-size: 10px; margin-top: 2px; }
+.fn-b  { background: var(--blue-light); }
+.fn-b .fn-title { color: var(--blue-mid); }
+.fn-b .fn-sub   { color: #60a5fa; }
+.fn-g  { background: var(--accent-light); }
+.fn-g .fn-title { color: var(--accent-mid); }
+.fn-g .fn-sub   { color: #34d399; }
+.fn-a  { background: var(--amber-light); }
+.fn-a .fn-title { color: var(--amber); }
+.fn-a .fn-sub   { color: #f59e0b; }
+.fn-c  { background: #fff0ed; }
+.fn-c .fn-title { color: #c2410c; }
+.fn-c .fn-sub   { color: #fb923c; }
+.fn-p  { background: var(--purple-light); }
+.fn-p .fn-title { color: var(--purple); }
+.fn-p .fn-sub   { color: #a78bfa; }
+.flow-arr { padding: 0 5px; color: var(--gray-300); font-size: 16px; flex-shrink: 0; }
+
+.guide-step-item { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; background: var(--gray-50); border: 1px solid var(--border); border-radius: var(--r-sm); }
+.gsi-icon { width: 26px; height: 26px; border-radius: 7px; background: var(--gray-200); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.gsi-icon svg { color: var(--gray-600); }
+.gsi-body strong { display: block; font-size: 12.5px; font-weight: 700; color: var(--gray-900); margin-bottom: 3px; }
+.gsi-body p { font-size: 12px; color: var(--gray-600); line-height: 1.55; }
+.gsi-example { margin-top: 6px; padding: 7px 10px; background: var(--blue-light); border-left: 2.5px solid var(--blue); border-radius: 0 var(--r-sm) var(--r-sm) 0; font-size: 11.5px; color: #1e40af; line-height: 1.5; }
+
+.tip-card { padding: 11px 14px; background: var(--amber-light); border-left: 3px solid var(--amber); border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+.tip-card p { font-size: 12px; color: #92400e; line-height: 1.55; }
+.tip-card strong { color: #78350f; }
+
+.mistake-item { display: flex; align-items: flex-start; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+.mistake-item:last-child { border-bottom: none; padding-bottom: 0; }
+.mistake-item svg { color: var(--red); flex-shrink: 0; margin-top: 1px; }
+.mistake-item span { font-size: 12.5px; color: var(--gray-700); line-height: 1.5; }
+
+/* ─────────────────────────────
+   MODE B — 사진 업로드
+───────────────────────────── */
+.mode-b-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.upload-panel {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.upload-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--gray-50);
+}
+.upload-panel-head svg { color: var(--gray-500); }
+.upload-panel-head span { font-size: 12.5px; font-weight: 700; color: var(--gray-600); text-transform: uppercase; letter-spacing: .06em; }
+.upload-panel-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+
+.dropzone {
+  border: 2px dashed var(--border-2);
+  border-radius: var(--r);
+  padding: 36px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .18s;
+  background: var(--gray-50);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.dropzone:hover, .dropzone.over { border-color: var(--accent); background: var(--accent-light); }
+.dropzone .dz-icon { width: 52px; height: 52px; border-radius: 14px; background: var(--white); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-xs); }
+.dropzone .dz-icon svg { color: var(--gray-500); }
+.dropzone h3 { font-size: 13.5px; font-weight: 700; color: var(--gray-700); }
+.dropzone p  { font-size: 12px; color: var(--gray-400); }
+.dropzone input { display: none; }
+.dropzone:hover .dz-icon svg { color: var(--accent); }
+
+.preview-img { border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; }
+.preview-img img { width: 100%; max-height: 220px; object-fit: contain; background: var(--gray-50); display: block; }
+.preview-ok {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #15803d;
+  font-weight: 600;
+  padding: 6px 0;
+}
+.preview-ok svg { color: #16a34a; }
+
+/* 채점 결과 패널 */
+.eval-panel {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.eval-header {
+  background: var(--gray-900);
+  color: white;
+  padding: 16px 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.eval-header-left h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.eval-header-left p  { font-size: 11.5px; color: rgba(255,255,255,.5); line-height: 1.5; }
+.eval-score-big { text-align: right; }
+.eval-score-big .big-num { font-size: 34px; font-weight: 700; color: #6ee7b7; line-height: 1; }
+.eval-score-big .big-lbl { font-size: 11.5px; color: rgba(255,255,255,.5); margin-top: 3px; }
+.eval-body { padding: 16px 18px; }
+.eval-row { display: grid; grid-template-columns: 130px 56px 1fr; gap: 12px; align-items: start; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.eval-row:last-of-type { border-bottom: none; }
+.eval-area { font-size: 12.5px; font-weight: 700; color: var(--gray-800); line-height: 1.4; }
+.eval-badge { display: inline-flex; align-items: center; justify-content: center; padding: 4px 10px; border-radius: 20px; font-size: 12.5px; font-weight: 700; }
+.eb-hi  { background: #f0fdf4; color: #15803d; }
+.eb-mid { background: var(--amber-light); color: #92400e; }
+.eb-lo  { background: var(--red-light); color: #991b1b; }
+.eval-fb { font-size: 12px; color: var(--gray-600); line-height: 1.55; }
+.eval-summary { padding: 12px 14px; background: var(--gray-50); border: 1px solid var(--border); border-radius: var(--r-sm); font-size: 13px; line-height: 1.7; margin-top: 14px; }
+.eval-summary strong { color: var(--accent-mid); }
+.improve-box { margin-top: 12px; border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; }
+.improve-head { display: flex; align-items: center; gap: 7px; padding: 9px 12px; background: var(--gray-50); border-bottom: 1px solid var(--border); font-size: 12.5px; font-weight: 700; color: var(--blue-mid); }
+.improve-head svg { color: var(--blue); }
+.improve-item { display: flex; gap: 8px; align-items: flex-start; padding: 9px 12px; border-bottom: 1px solid var(--border); font-size: 12.5px; color: var(--gray-700); }
+.improve-item:last-child { border-bottom: none; }
+.improve-item svg { color: var(--blue); flex-shrink: 0; margin-top: 1px; }
+
+/* 공통 버튼 */
+.print-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  background: var(--gray-900);
+  color: white;
+  border: none;
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  margin-top: 20px;
+  transition: background .15s;
+}
+.print-btn:hover { background: var(--gray-700); }
+.print-btn svg { flex-shrink: 0; }
+
+/* 복사 버튼 */
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  background: var(--white);
+  color: var(--gray-700);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  margin-top: 20px;
+  margin-left: 8px;
+  transition: all .15s;
+}
+.copy-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.copy-btn.copied { background: var(--accent); color: white; border-color: var(--accent); }
+.copy-btn svg { flex-shrink: 0; }
+
+/* 반응형 */
+@media (max-width: 960px) {
+  .two-col { grid-template-columns: 1fr; }
+  .mode-b-wrap { grid-template-columns: 1fr; }
+}
+@media print {
+  .app-header, .mode-nav, .side-panel, .result-tabs, .print-btn, .gen-btn { display: none !important; }
+  .result-content { padding: 0; }
+  .two-col { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+
+<!-- ════ HEADER ════ -->
+<header class="app-header">
+  <div class="logo">
+    <div class="logo-icon">
+      <i data-lucide="pen-line" style="width:17px;height:17px;"></i>
+    </div>
+    <span class="logo-text">자율<span>논술</span></span>
+  </div>
+  <div class="header-divider"></div>
+  <span class="header-sub">2022 개정교육과정 학교 자율시간 논술 지도 플랫폼</span>
+  <div class="header-spacer"></div>
+  <div class="header-badge">
+    <i data-lucide="sparkles" style="width:13px;height:13px;"></i>
+    Claude AI 연동
+  </div>
+</header>
+
+<!-- ════ MODE NAV ════ -->
+<nav class="mode-nav">
+  <button class="mode-btn active" onclick="switchMode('A')">
+    <i data-lucide="file-pen" style="width:15px;height:15px;"></i>
+    모드 A — 논술 생성
+  </button>
+  <button class="mode-btn" onclick="switchMode('B')">
+    <i data-lucide="scan-eye" style="width:15px;height:15px;"></i>
+    모드 B — 학생 글 AI 평가
+  </button>
+</nav>
+
+<main class="app-body">
+
+<!-- ══════ 모드 A ══════ -->
+<div id="modeA">
+  <div class="two-col">
+
+    <!-- 설정 사이드 패널 -->
+    <aside>
+      <div class="side-panel">
+        <div class="side-panel-head">
+          <i data-lucide="sliders-horizontal" style="width:15px;height:15px;"></i>
+          <span class="side-panel-title">논술 설정</span>
+        </div>
+        <div class="side-panel-body">
+
+          <!-- API 키 -->
+          <div class="api-banner" id="apiNotice">
+            <div class="api-banner-top">
+              <i data-lucide="key-round" style="width:13px;height:13px;"></i>
+              Claude API 키 입력
+            </div>
+            <p>api.anthropic.com에서 발급받은 키를 입력하세요. 브라우저에 저장되며 외부로 전송되지 않습니다.</p>
+            <div class="api-key-row">
+              <input type="password" id="apiKeyInput" placeholder="sk-ant-..." />
+              <button class="btn-amber" onclick="saveApiKey()">저장</button>
+              <button onclick="clearApiKey()" style="padding:7px 10px;background:none;border:1px solid var(--border);border-radius:var(--r-sm);font-size:12px;cursor:pointer;color:var(--gray-500);font-family:'Noto Sans KR',sans-serif;">삭제</button>
+            </div>
+          </div>
+
+          <!-- 학교급 -->
+          <div class="field">
+            <div class="field-label">
+              <i data-lucide="school" style="width:13px;height:13px;"></i>
+              학교급 <span class="req">필수</span>
+            </div>
+            <div class="level-grid">
+              <div class="level-btn" onclick="selectLevel('elem',this)">
+                <div class="lv-icon"><i data-lucide="sprout" style="width:16px;height:16px;"></i></div>
+                <div class="lv-name">초등학교</div>
+                <div class="lv-sub">3~6학년</div>
+              </div>
+              <div class="level-btn" onclick="selectLevel('mid',this)">
+                <div class="lv-icon"><i data-lucide="book-open" style="width:16px;height:16px;"></i></div>
+                <div class="lv-name">중학교</div>
+                <div class="lv-sub">1~3학년</div>
+              </div>
+              <div class="level-btn" onclick="selectLevel('high',this)">
+                <div class="lv-icon"><i data-lucide="graduation-cap" style="width:16px;height:16px;"></i></div>
+                <div class="lv-name">고등학교</div>
+                <div class="lv-sub">1~3학년</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 분야 -->
+          <div class="field">
+            <div class="field-label">
+              <i data-lucide="tag" style="width:13px;height:13px;"></i>
+              논술 분야 <span class="req">필수</span>
+            </div>
+            <div class="tag-wrap" id="fieldTags">
+              <div class="tag-btn" onclick="toggleTag(this,'field')">환경·생태</div>
+              <div class="tag-btn" onclick="toggleTag(this,'field')">다문화·인권</div>
+              <div class="tag-btn" onclick="toggleTag(this,'field')">건강·보건</div>
+              <div class="tag-btn" onclick="toggleTag(this,'field')">문학·예술</div>
+              <div class="tag-btn" onclick="toggleTag(this,'field')">경제·진로</div>
+              <div class="tag-btn" onclick="toggleTag(this,'field')">미디어·AI</div>
+              <div class="tag-btn" onclick="toggleTag(this,'field')">민주시민</div>
+              <div class="tag-btn" onclick="toggleTag(this,'field')">과학·기술</div>
+              <div class="tag-btn" onclick="toggleTag(this,'field')">직접입력</div>
+            </div>
+            <div class="custom-wrap" id="customFieldWrap">
+              <input type="text" id="customField" placeholder="분야를 직접 입력하세요" />
+            </div>
+          </div>
+
+          <!-- 교과 연계 -->
+          <div class="field">
+            <div class="field-label">
+              <i data-lucide="layers" style="width:13px;height:13px;"></i>
+              교과 연계
+              <span style="font-size:11px;font-weight:400;color:var(--gray-400);margin-left:2px;">선택</span>
+            </div>
+            <div class="tag-wrap" id="subjectTags">
+              <div class="tag-btn" onclick="toggleTag(this,'subject')">국어</div>
+              <div class="tag-btn" onclick="toggleTag(this,'subject')">사회</div>
+              <div class="tag-btn" onclick="toggleTag(this,'subject')">역사</div>
+              <div class="tag-btn" onclick="toggleTag(this,'subject')">도덕</div>
+              <div class="tag-btn" onclick="toggleTag(this,'subject')">과학</div>
+              <div class="tag-btn" onclick="toggleTag(this,'subject')">기술·가정</div>
+              <div class="tag-btn" onclick="toggleTag(this,'subject')">영어</div>
+              <div class="tag-btn" onclick="toggleTag(this,'subject')">수학</div>
+              <div class="tag-btn" onclick="toggleTag(this,'subject')">음악</div>
+              <div class="tag-btn" onclick="toggleTag(this,'subject')">미술</div>
+              <div class="tag-btn" onclick="toggleTag(this,'subject')">체육</div>
+              <div class="tag-btn" onclick="toggleTag(this,'subject')">정보</div>
+              <div class="tag-btn" onclick="toggleTag(this,'subject')">직접입력</div>
+            </div>
+            <div class="custom-wrap" id="customSubjectWrap">
+              <input type="text" id="customSubject" placeholder="교과목을 직접 입력하세요" />
+            </div>
+          </div>
+
+          <!-- 논술 유형 -->
+          <div class="field">
+            <div class="field-label">
+              <i data-lucide="list-checks" style="width:13px;height:13px;"></i>
+              논술 유형 <span class="req">필수</span>
+            </div>
+            <select class="styled-select" id="essayType">
+              <option value="">-- 유형 선택 --</option>
+              <optgroup label="목적에 따른 유형">
+                <option value="설명형">설명형 — 개념·원리를 쉽게 풀어 설명</option>
+                <option value="주장형">주장형 — 의견을 논거로 설득</option>
+                <option value="비판형">비판형 — 문제점 분석 + 대안 제시</option>
+                <option value="대안제시형">대안제시형 — 문제 해결 방법 제안</option>
+                <option value="비교분석형">비교·분석형 — 두 대상 비교 분석</option>
+                <option value="서사형">서사형 — 경험·사건 전개 후 교훈</option>
+              </optgroup>
+              <optgroup label="사고구조에 따른 유형">
+                <option value="원인결과형">원인-결과형 — 원인→과정→결과→해결</option>
+                <option value="문제해결형">문제-해결형 — 문제 분석 후 해결 제시</option>
+                <option value="찬반형">찬반형 — 찬반 논거 비교</option>
+                <option value="자료해석형">자료해석형 — 통계·사례 분석</option>
+                <option value="통합형">통합형 — 여러 자료 연결 종합</option>
+              </optgroup>
+              <optgroup label="학교 현장 특화">
+                <option value="독후감논술">독후감 논술</option>
+                <option value="시사논술">시사 논술</option>
+                <option value="토론논술">토론 논술</option>
+                <option value="환경논술">환경 논술</option>
+                <option value="인성논술">인성 논술</option>
+                <option value="진로논술">진로 논술</option>
+                <option value="자기성찰논술">자기성찰 논술</option>
+                <option value="과학논술">과학 논술</option>
+                <option value="AI디지털논술">AI·디지털 논술</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <!-- 글자 수 -->
+          <div class="field">
+            <div class="field-label">
+              <i data-lucide="type" style="width:13px;height:13px;"></i>
+              목표 글자 수
+            </div>
+            <div class="tag-wrap" id="charTags">
+              <div class="tag-btn" onclick="selectChar(this,'300')">300자</div>
+              <div class="tag-btn" onclick="selectChar(this,'500')">500자</div>
+              <div class="tag-btn" onclick="selectChar(this,'800')">800자</div>
+              <div class="tag-btn" onclick="selectChar(this,'1000')">1000자</div>
+              <div class="tag-btn" onclick="selectChar(this,'1500')">1500자</div>
+              <div class="tag-btn" onclick="selectChar(this,'2000')">2000자</div>
+            </div>
+            <div class="field-hint" id="charHint">학교급을 먼저 선택하면 권장 글자수를 안내합니다</div>
+          </div>
+
+          <button class="gen-btn" onclick="generateAll()" id="genBtn">
+            <i data-lucide="sparkles" style="width:16px;height:16px;"></i>
+            논술 생성하기
+          </button>
+
+        </div>
+      </div>
+    </aside>
+
+    <!-- 결과 패널 -->
+    <section>
+      <div class="result-panel">
+        <div class="result-tabs">
+          <button class="result-tab active" onclick="switchTab('essay',this)">
+            <i data-lucide="file-text" style="width:14px;height:14px;"></i>
+            탭① 논술 예시문
+          </button>
+          <button class="result-tab" onclick="switchTab('worksheet',this)">
+            <i data-lucide="clipboard-list" style="width:14px;height:14px;"></i>
+            탭② 학습지
+          </button>
+          <button class="result-tab" onclick="switchTab('rubric',this)">
+            <i data-lucide="check-square" style="width:14px;height:14px;"></i>
+            탭③ 루브릭
+          </button>
+          <button class="result-tab" onclick="switchTab('guide',this)">
+            <i data-lucide="book-open-text" style="width:14px;height:14px;"></i>
+            탭④ 학습 가이드
+          </button>
+        </div>
+
+        <!-- ① 예시문 -->
+        <div class="result-content" id="tab-essay">
+          <div class="empty-state" id="essay-empty">
+            <div class="empty-icon"><i data-lucide="file-pen" style="width:28px;height:28px;"></i></div>
+            <h3>논술 예시문이 여기에 표시됩니다</h3>
+            <p>왼쪽에서 학교급·분야·유형을 설정하고 생성하기 버튼을 눌러주세요</p>
+          </div>
+          <div id="essay-loading" class="loading-state" style="display:none">
+            <div class="spinner-ring"></div>
+            <div class="loading-text">논술 예시문 생성 중...</div>
+            <div class="loading-sub">Claude AI가 작성하고 있습니다</div>
+          </div>
+          <div id="essay-result" style="display:none"></div>
+        </div>
+
+        <!-- ② 학습지 -->
+        <div class="result-content" id="tab-worksheet" style="display:none">
+          <div class="empty-state" id="ws-empty">
+            <div class="empty-icon"><i data-lucide="clipboard-list" style="width:28px;height:28px;"></i></div>
+            <h3>학생 학습지가 여기에 표시됩니다</h3>
+            <p>논술을 먼저 생성하면 학습지가 자동으로 만들어집니다</p>
+          </div>
+          <div id="ws-loading" class="loading-state" style="display:none">
+            <div class="spinner-ring"></div>
+            <div class="loading-text">학습지 생성 중...</div>
+          </div>
+          <div id="ws-result" style="display:none"></div>
+        </div>
+
+        <!-- ③ 루브릭 -->
+        <div class="result-content" id="tab-rubric" style="display:none">
+          <div class="empty-state" id="rubric-empty">
+            <div class="empty-icon"><i data-lucide="check-square" style="width:28px;height:28px;"></i></div>
+            <h3>평가 루브릭이 여기에 표시됩니다</h3>
+            <p>논술 생성 후 학교급에 맞는 100점 루브릭이 자동 생성됩니다</p>
+          </div>
+          <div id="rubric-loading" class="loading-state" style="display:none">
+            <div class="spinner-ring"></div>
+            <div class="loading-text">루브릭 생성 중...</div>
+          </div>
+          <div id="rubric-result" style="display:none"></div>
+        </div>
+
+        <!-- ④ 학습 가이드 -->
+        <div class="result-content" id="tab-guide" style="display:none">
+          <div class="empty-state" id="guide-empty">
+            <div class="empty-icon"><i data-lucide="book-open-text" style="width:28px;height:28px;"></i></div>
+            <h3>교사 지도서가 여기에 표시됩니다</h3>
+            <p>논술 유형에 맞는 서·본·결 지도 방법이 자동으로 생성됩니다</p>
+          </div>
+          <div id="guide-loading" class="loading-state" style="display:none">
+            <div class="spinner-ring"></div>
+            <div class="loading-text">학습 가이드 생성 중...</div>
+          </div>
+          <div id="guide-result" style="display:none"></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div><!-- /modeA -->
+
+<!-- ══════ 모드 B ══════ -->
+<div id="modeB" style="display:none">
+  <div class="mode-b-wrap">
+
+    <!-- 입력 패널 -->
+    <div class="upload-panel">
+      <div class="upload-panel-head">
+        <i data-lucide="scan-eye" style="width:15px;height:15px;"></i>
+        <span>학생 글 AI 채점</span>
+      </div>
+      <div class="upload-panel-body">
+
+        <!-- API 키 상태 -->
+        <div class="api-banner" id="apiNoticeB">
+          <div class="api-banner-top">
+            <i data-lucide="key-round" style="width:13px;height:13px;"></i>
+            API 키 상태
+          </div>
+          <p>모드 A에서 저장한 키가 자동 적용됩니다.</p>
+        </div>
+
+        <!-- 학교급 -->
+        <div class="field">
+          <div class="field-label">
+            <i data-lucide="school" style="width:13px;height:13px;"></i>
+            학교급 선택 <span class="req">필수</span>
+          </div>
+          <div class="level-grid">
+            <div class="level-btn" onclick="selectLevelB('elem',this)">
+              <div class="lv-icon"><i data-lucide="sprout" style="width:16px;height:16px;"></i></div>
+              <div class="lv-name">초등학교</div>
+            </div>
+            <div class="level-btn" onclick="selectLevelB('mid',this)">
+              <div class="lv-icon"><i data-lucide="book-open" style="width:16px;height:16px;"></i></div>
+              <div class="lv-name">중학교</div>
+            </div>
+            <div class="level-btn" onclick="selectLevelB('high',this)">
+              <div class="lv-icon"><i data-lucide="graduation-cap" style="width:16px;height:16px;"></i></div>
+              <div class="lv-name">고등학교</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 입력 방식 탭 -->
+        <div class="field">
+          <div class="field-label">
+            <i data-lucide="file-input" style="width:13px;height:13px;"></i>
+            입력 방식 선택
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <button id="tabImgBtn" onclick="switchInputTab('img')"
+              style="display:flex;align-items:center;justify-content:center;gap:7px;padding:10px;border:1.5px solid var(--accent);border-radius:var(--r-sm);background:var(--accent-light);color:var(--accent-mid);font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .15s;">
+              <i data-lucide="image" style="width:15px;height:15px;"></i> 사진 업로드
+            </button>
+            <button id="tabTxtBtn" onclick="switchInputTab('txt')"
+              style="display:flex;align-items:center;justify-content:center;gap:7px;padding:10px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--white);color:var(--gray-500);font-size:13px;font-weight:500;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .15s;">
+              <i data-lucide="clipboard-paste" style="width:15px;height:15px;"></i> 텍스트 붙여넣기
+            </button>
+          </div>
+        </div>
+
+        <!-- 사진 업로드 탭 -->
+        <div id="inputImg">
+          <div class="dropzone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+            <div class="dz-icon"><i data-lucide="image-plus" style="width:24px;height:24px;"></i></div>
+            <h3>사진을 드래그하거나 클릭해서 업로드</h3>
+            <p>학생 손글씨 논술 답안 사진<br>JPG / PNG / HEIC 지원</p>
+            <input type="file" id="fileInput" accept="image/*" onchange="handleFileUpload(this)">
+          </div>
+          <div id="previewArea"></div>
+        </div>
+
+        <!-- 텍스트 붙여넣기 탭 -->
+        <div id="inputTxt" style="display:none;">
+          <div style="position:relative;">
+            <textarea id="essayTextInput"
+              placeholder="학생이 작성한 논술문을 여기에 붙여넣기 하세요.&#10;&#10;• 워드/한글 문서에서 Ctrl+A → Ctrl+C 후 여기에 Ctrl+V&#10;• 또는 직접 타이핑 가능"
+              style="width:100%;min-height:220px;padding:13px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13px;font-family:'Noto Sans KR',sans-serif;color:var(--gray-800);background:var(--white);resize:vertical;line-height:1.7;transition:border .15s;"
+              oninput="updateTextCount()"
+              onfocus="this.style.borderColor='var(--accent)'"
+              onblur="this.style.borderColor='var(--border)'"></textarea>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+              <span style="font-size:11.5px;color:var(--gray-400);">붙여넣기 후 AI 채점 버튼을 누르세요</span>
+              <span id="textCount" style="font-size:12px;color:var(--gray-500);font-weight:500;">0자</span>
+            </div>
+            <button onclick="clearTextInput()"
+              style="position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;color:var(--gray-400);padding:2px;" title="내용 지우기">
+              <i data-lucide="x-circle" style="width:16px;height:16px;"></i>
+            </button>
+          </div>
+        </div>
+
+        <button class="gen-btn" onclick="evaluateEssay()" id="evalBtn">
+          <i data-lucide="scan-search" style="width:16px;height:16px;"></i>
+          AI 채점 시작
+        </button>
+
+      </div>
+    </div>
+
+    <!-- 결과 패널 -->
+    <div class="eval-panel" id="evalResultArea">
+      <div class="empty-state" style="min-height:400px;">
+        <div class="empty-icon"><i data-lucide="target" style="width:28px;height:28px;"></i></div>
+        <h3>채점 결과가 여기에 표시됩니다</h3>
+        <p>사진 또는 텍스트를 입력하고<br>AI 채점을 시작하면 5개 영역 100점으로 평가됩니다</p>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /modeB -->
+
+</main>
+
+<script>
+// ─────────────────────────────────────────
+// 아이콘 초기화
+// ─────────────────────────────────────────
+lucide.createIcons();
+
+// ═══════════════════════════════════════════════════════
+// 🔐 API 키 — 브라우저 localStorage 저장 방식
+//
+// API 키는 이 파일에 존재하지 않습니다.
+// 교사가 화면에서 입력 → 브라우저에만 저장 → GitHub에 노출 없음
+// ═══════════════════════════════════════════════════════
+
+const state = {
+  apiKey: localStorage.getItem('essay_api_key') || '',
+  model: 'claude-sonnet-4-6',
+  level: '', levelB: '', field: '', subject: '',
+  essayType: '', charCount: '',
+  uploadedImage: null, uploadedBase64: null, uploadedImageType: null,
+  generated: false
+};
+
+// 키 마스킹 표시 (화면에 키 전체 노출 방지)
+function maskKey(key) {
+  if (!key || key.length < 20) return '••••••••••••••••';
+  return key.substring(0, 14) + '••••••••••••' + key.slice(-4);
+}
+
+// 저장된 키 있으면 입력란 숨기고 연결 상태 표시
+if (state.apiKey) {
+  document.getElementById('apiNotice').style.display = 'none';
+  document.getElementById('apiNoticeB').innerHTML =
+    '<div class="api-banner-top" style="color:#15803d;">' +
+    '<i data-lucide="check-circle-2" style="width:13px;height:13px;"></i> API 키 연결됨</div>';
+  document.getElementById('apiKeyInput').value = maskKey(state.apiKey);
+  lucide.createIcons();
+}
+
+function saveApiKey() {
+  const raw = document.getElementById('apiKeyInput').value.trim();
+  if (!raw || raw.includes('••')) return alert('새 API 키를 입력해주세요.');
+  if (!raw.startsWith('sk-ant-')) {
+    return alert('올바른 API 키 형식이 아닙니다.\nsk-ant- 로 시작해야 합니다.');
+  }
+  state.apiKey = raw;
+  localStorage.setItem('essay_api_key', raw);  // 브라우저에만 저장
+  document.getElementById('apiNotice').style.display = 'none';
+  document.getElementById('apiNoticeB').innerHTML =
+    '<div class="api-banner-top" style="color:#15803d;">' +
+    '<i data-lucide="check-circle-2" style="width:13px;height:13px;"></i> API 키 연결됨</div>';
+  document.getElementById('apiKeyInput').value = maskKey(raw);
+  lucide.createIcons();
+  alert('✅ API 키 저장 완료\n이 브라우저에서는 다음부터 입력 없이 사용할 수 있습니다.');
+}
+
+function clearApiKey() {
+  if (!confirm('저장된 API 키를 삭제하시겠습니까?')) return;
+  state.apiKey = '';
+  localStorage.removeItem('essay_api_key');
+  document.getElementById('apiKeyInput').value = '';
+  document.getElementById('apiNotice').style.display = 'block';
+  document.getElementById('apiNoticeB').innerHTML =
+    '<div class="api-banner-top">' +
+    '<i data-lucide="key-round" style="width:13px;height:13px;"></i> API 키 상태</div>' +
+    '<p>모드 A에서 저장한 키가 자동 적용됩니다.</p>';
+  lucide.createIcons();
+}
+
+// ─────────────────────────────────────────
+// 모드 전환
+// ─────────────────────────────────────────
+function switchMode(m) {
+  document.getElementById('modeA').style.display = m === 'A' ? 'block' : 'none';
+  document.getElementById('modeB').style.display = m === 'B' ? 'block' : 'none';
+  document.querySelectorAll('.mode-btn').forEach((b,i) => {
+    b.classList.toggle('active', (i===0&&m==='A')||(i===1&&m==='B'));
+  });
+}
+
+// ─────────────────────────────────────────
+// 설정 조작
+// ─────────────────────────────────────────
+const levelConfig = {
+  elem: { name:'초등학교', chars:['300','500','800'],   bodyParas:2, hint:'초등학교 권장: 300~800자' },
+  mid:  { name:'중학교',   chars:['800','1000','1500'], bodyParas:3, hint:'중학교 권장: 800~1500자' },
+  high: { name:'고등학교', chars:['1000','1500','2000'],bodyParas:4, hint:'고등학교 권장: 1000~2000자' }
+};
+
+function selectLevel(lv, el) {
+  state.level = lv;
+  document.querySelectorAll('#modeA .level-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  const cfg = levelConfig[lv];
+  document.getElementById('charHint').textContent = cfg.hint;
+  document.querySelectorAll('#charTags .tag-btn').forEach(b => {
+    b.style.opacity = cfg.chars.includes(b.textContent.replace('자','')) ? '1' : '0.3';
+  });
+}
+function selectLevelB(lv, el) {
+  state.levelB = lv;
+  document.querySelectorAll('#modeB .level-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+function toggleTag(el, type) {
+  const isActive = el.classList.contains('active');
+  el.closest('.tag-wrap').querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+  if (!isActive) {
+    el.classList.add('active');
+    const val = el.textContent.trim();
+    if (type === 'field') {
+      state.field = val;
+      document.getElementById('customFieldWrap').classList.toggle('show', val === '직접입력');
+    }
+    if (type === 'subject') {
+      state.subject = val;
+      document.getElementById('customSubjectWrap').classList.toggle('show', val === '직접입력');
+    }
+  } else {
+    if (type === 'field')   { state.field = '';   document.getElementById('customFieldWrap').classList.remove('show'); }
+    if (type === 'subject') { state.subject = ''; document.getElementById('customSubjectWrap').classList.remove('show'); }
+  }
+}
+function selectChar(el, val) {
+  document.querySelectorAll('#charTags .tag-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  state.charCount = val;
+}
+function switchTab(name, btn) {
+  ['essay','worksheet','rubric','guide'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t === name ? 'block' : 'none';
+  });
+  document.querySelectorAll('.result-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ─────────────────────────────────────────
+// Claude API
+// ─────────────────────────────────────────
+// ─────────────────────────────────────────
+// Claude API 호출 (Overloaded 자동 재시도 포함)
+// ─────────────────────────────────────────
+async function callClaude(prompt, systemPrompt = '', imageData = null, _retry = 0) {
+  if (!state.apiKey) throw new Error('API 키를 먼저 입력해주세요.');
+
+  const messages = [];
+  if (imageData) {
+    messages.push({ role:'user', content:[
+      { type:'image', source:{ type:'base64', media_type:imageData.type, data:imageData.data } },
+      { type:'text', text:prompt }
+    ]});
+  } else {
+    messages.push({ role:'user', content:prompt });
+  }
+  const body = { model: state.model || 'claude-sonnet-4-6', max_tokens:4000, messages };
+  if (systemPrompt) body.system = systemPrompt;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key': state.apiKey,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body: JSON.stringify(body)
+  });
+
+  // ── Overloaded(529) 자동 재시도 (최대 4회, 간격 15초) ──
+  if (res.status === 529 || res.status === 503) {
+    if (_retry < 4) {
+      const wait = (_retry + 1) * 15000; // 15초, 30초, 45초, 60초
+      showRetryToast(_retry + 1, wait / 1000);
+      await new Promise(r => setTimeout(r, wait));
+      return callClaude(prompt, systemPrompt, imageData, _retry + 1);
+    }
+    throw new Error('서버가 혼잡합니다. 잠시 후 다시 시도해주세요. (Overloaded)');
+  }
+
+  if (!res.ok) {
+    const e = await res.json();
+    throw new Error(e.error?.message || 'API 오류 (' + res.status + ')');
+  }
+  hideRetryToast();
+  const data = await res.json();
+  return data.content[0].text;
+}
+
+// 재시도 알림 토스트
+function showRetryToast(attempt, seconds) {
+  let toast = document.getElementById('retryToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'retryToast';
+    toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e293b;color:#e2e8f0;padding:12px 22px;border-radius:10px;font-size:13px;font-family:Noto Sans KR,sans-serif;z-index:9999;display:flex;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,.3);';
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML = `<span style="color:#fbbf24;font-size:16px;">⏳</span> 서버 혼잡 — ${attempt}번째 재시도 중... (${seconds}초 대기)`;
+  toast.style.display = 'flex';
+}
+function hideRetryToast() {
+  const toast = document.getElementById('retryToast');
+  if (toast) toast.style.display = 'none';
+}
+
+// ─────────────────────────────────────────
+// 생성 메인
+// ─────────────────────────────────────────
+async function generateAll() {
+  if (!state.apiKey) return alert('먼저 Claude API 키를 입력해주세요.');
+  if (!state.level)  return alert('학교급을 선택해주세요.');
+  const field = state.field === '직접입력'
+    ? (document.getElementById('customField').value.trim() || '') : state.field;
+  if (!field || field === '직접입력') return alert('논술 분야를 선택하거나 직접 입력해주세요.');
+  const essayType = document.getElementById('essayType').value;
+  if (!essayType) return alert('논술 유형을 선택해주세요.');
+  const charCount = state.charCount || levelConfig[state.level].chars[0];
+  const subject = state.subject === '직접입력'
+    ? (document.getElementById('customSubject').value.trim() || '') : state.subject;
+  const levelName = levelConfig[state.level].name;
+  const bodyParas  = levelConfig[state.level].bodyParas;
+
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i data-lucide="loader-circle" style="width:16px;height:16px;animation:spin .75s linear infinite;"></i> 생성 중...';
+  lucide.createIcons();
+
+  switchTab('essay', document.querySelector('.result-tab'));
+
+  try {
+    await Promise.all([
+      genEssay(levelName, field, subject, essayType, charCount, bodyParas),
+      genWorksheet(levelName, field, subject, essayType, charCount, bodyParas),
+      genRubric(levelName, field, essayType, bodyParas),
+      genGuide(levelName, field, essayType, bodyParas)
+    ]);
+    state.generated = true;
+  } catch(e) { alert('생성 오류: ' + e.message); }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i data-lucide="refresh-cw" style="width:16px;height:16px;"></i> 다시 생성하기';
+  lucide.createIcons();
+}
+
+// ─────────────────────────────────────────
+// 탭 상태
+// ─────────────────────────────────────────
+function setTabState(tab, st) {
+  const map = {
+    essay:     ['essay-empty','essay-loading','essay-result'],
+    worksheet: ['ws-empty','ws-loading','ws-result'],
+    rubric:    ['rubric-empty','rubric-loading','rubric-result'],
+    guide:     ['guide-empty','guide-loading','guide-result']
+  };
+  const [eId, lId, rId] = map[tab];
+  document.getElementById(eId).style.display = st==='empty'   ? 'flex'  : 'none';
+  document.getElementById(lId).style.display = st==='loading' ? 'flex'  : 'none';
+  document.getElementById(rId).style.display = st==='result'  ? 'block' : 'none';
+}
+
+// ─────────────────────────────────────────
+// TAB① 논술 예시문
+// ─────────────────────────────────────────
+async function genEssay(level, field, subject, type, chars, bodyParas) {
+  setTabState('essay','loading');
+  const subjectStr = subject ? `, 교과 연계: ${subject}` : '';
+  const prompt = `당신은 한국 학교 현장의 논술 전문 교사입니다.
+
+다음 조건으로 완성된 논술 예시문을 작성해주세요.
+
+조건:
+- 학교급: ${level}
+- 논술 분야: ${field}${subjectStr}
+- 논술 유형: ${type}
+- 목표 글자 수: 약 ${chars}자
+- 본론 문단 수: ${bodyParas}개
+
+반드시 아래 JSON 형식으로만 응답하세요 (다른 말 없이):
+{
+  "topic": "논술 제목",
+  "intro": "서론 전체 텍스트",
+  "body": ["본론 문단1", "본론 문단2", ${bodyParas >= 3 ? '"본론 문단3",' : ''} ${bodyParas >= 4 ? '"본론 문단4"' : '""'}],
+  "conclusion": "결론 전체 텍스트",
+  "totalChars": 실제글자수숫자
+}
+
+작성 규칙:
+- 서론: 단도직입 첫 문장 + 문제제기 + 필요성
+- 본론: 각 문단 두괄식(첫 문장 = 중심문장) + 객관적 근거·사례
+- 결론: 단도직입 + 본론 요약(다른 표현) + 제언
+- ${level === '초등학교' ? '초등학생이 이해할 수 있는 쉬운 문장과 친근한 예시 사용' : level === '중학교' ? '중학생 수준의 어휘와 논리적 문장 구조' : '고등학생 수준의 논술 어휘와 논증 구조, 반론 재반박 포함'}`;
+  try {
+    const raw  = await callClaude(prompt);
+    const data = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    renderEssay(data, level, field, type, chars);
+    setTabState('essay','result');
+    lucide.createIcons();
+  } catch(e) { setTabState('essay','empty'); throw e; }
+}
+
+function renderEssay(data, level, field, type, chars) {
+  const body = (Array.isArray(data.body) ? data.body : []).filter(Boolean);
+  const bodyHTML = body.map((p,i) => `
+    <div class="part-block">
+      <div class="part-label pl-body">
+        <i data-lucide="align-justify" style="width:11px;height:11px;"></i>
+        본론 ${i+1}
+      </div>
+      <p class="essay-para">${p}</p>
+    </div>`).join('');
+
+  document.getElementById('essay-result').innerHTML = `
+    <div class="essay-chips">
+      <span class="chip chip-g"><i data-lucide="school" style="width:11px;height:11px;"></i>${level}</span>
+      <span class="chip chip-b"><i data-lucide="tag" style="width:11px;height:11px;"></i>${field}</span>
+      <span class="chip chip-p"><i data-lucide="list-checks" style="width:11px;height:11px;"></i>${type}</span>
+      <span class="chip chip-a"><i data-lucide="type" style="width:11px;height:11px;"></i>목표 ${chars}자</span>
+    </div>
+    <h2 class="essay-title">${data.topic}</h2>
+    <div class="essay-body">
+      <div class="part-block">
+        <div class="part-label pl-intro">
+          <i data-lucide="play" style="width:11px;height:11px;"></i>
+          서론
+        </div>
+        <p class="essay-para">${data.intro}</p>
+      </div>
+      ${bodyHTML}
+      <div class="part-block">
+        <div class="part-label pl-outro">
+          <i data-lucide="flag" style="width:11px;height:11px;"></i>
+          결론
+        </div>
+        <p class="essay-para">${data.conclusion}</p>
+      </div>
+    </div>
+    <div class="char-bar">
+      <i data-lucide="text-cursor-input" style="width:13px;height:13px;"></i>
+      총 글자 수: 약 ${data.totalChars || chars}자
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:0;">
+      <button class="print-btn" onclick="window.print()">
+        <i data-lucide="printer" style="width:14px;height:14px;"></i>
+        인쇄하기
+      </button>
+      <button class="copy-btn" id="essayCopyBtn" onclick="copyEssayText()">
+        <i data-lucide="copy" style="width:14px;height:14px;"></i>
+        논술문 복사
+      </button>
+    </div>`;
+  lucide.createIcons();
+}
+
+// 논술 예시문 클립보드 복사
+function copyEssayText() {
+  const resultEl = document.getElementById('essay-result');
+  if (!resultEl) return;
+  const title = resultEl.querySelector('.essay-title')?.innerText || '';
+  const parts  = resultEl.querySelectorAll('.part-block');
+  let text = title + '\n\n';
+  parts.forEach(p => {
+    const lbl  = p.querySelector('.part-label')?.innerText?.trim() || '';
+    const para = p.querySelector('.essay-para')?.innerText?.trim() || '';
+    text += '[' + lbl + ']\n' + para + '\n\n';
+  });
+  const charInfo = resultEl.querySelector('.char-bar')?.innerText?.trim() || '';
+  if (charInfo) text += charInfo;
+
+  navigator.clipboard.writeText(text.trim()).then(() => {
+    const btn = document.getElementById('essayCopyBtn');
+    btn.classList.add('copied');
+    btn.innerHTML = '<i data-lucide="check" style="width:14px;height:14px;"></i> 복사 완료!';
+    lucide.createIcons();
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = '<i data-lucide="copy" style="width:14px;height:14px;"></i> 논술문 복사';
+      lucide.createIcons();
+    }, 2500);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text.trim();
+    ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('논술문이 클립보드에 복사되었습니다.');
+  });
+}
+
+// ─────────────────────────────────────────
+// TAB② 학습지
+// ─────────────────────────────────────────
+async function genWorksheet(level, field, subject, type, chars, bodyParas) {
+  setTabState('worksheet','loading');
+  const prompt = `한국 ${level} 논술 수업용 학생 학습지를 만들어주세요.
+조건: 분야: ${field}, 논술 유형: ${type}, 글자 수: ${chars}자, 본론 문단 수: ${bodyParas}개
+아래 JSON 형식으로만 응답:
+{
+  "title": "학습지 제목",
+  "topic": "논술 주제 제목",
+  "background": "주제 배경 설명 (2~3문장, ${level} 눈높이)",
+  "keywords": ["핵심어1","핵심어2","핵심어3","핵심어4"],
+  "outlineIntro": "서론 개요 작성 힌트",
+  "outlineBody": ["본론1 힌트","본론2 힌트",${bodyParas>=3?'"본론3 힌트"':'"" '},${bodyParas>=4?'"본론4 힌트"':'""'}],
+  "outlineConclusion": "결론 개요 작성 힌트",
+  "checklist": ["체크리스트1","항목2","항목3","항목4","항목5"]
+}`;
+  try {
+    const raw  = await callClaude(prompt);
+    const data = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    renderWorksheet(data, level, field, type, chars, bodyParas);
+    setTabState('worksheet','result');
+    lucide.createIcons();
+  } catch(e) { setTabState('worksheet','empty'); throw e; }
+}
+
+function renderWorksheet(data, level, field, type, chars, bodyParas) {
+  const bodyRows = (data.outlineBody||[]).filter((v,i)=>i<bodyParas&&v).map((hint,i)=>`
+    <tr><th>본론 ${i+1}</th><td><div class="ws-hint">${hint}</div></td></tr>`).join('');
+  const kws = (data.keywords||[]).map(k=>`<span class="kw-chip">${k}</span>`).join('');
+  const checks = (data.checklist||[]).map(c=>`
+    <div class="ws-check-item"><div class="ws-check-box"></div>${c}</div>`).join('');
+
+  document.getElementById('ws-result').innerHTML = `
+    <div class="ws-wrap">
+      <div class="ws-top">
+        <h2>${data.title||'논술 학습지'}</h2>
+        <p>${level} · ${field} · ${type} · 목표 ${chars}자</p>
+      </div>
+      <div class="ws-meta">
+        <div class="ws-meta-box"><label>학년 / 반</label><div class="ws-meta-line"></div></div>
+        <div class="ws-meta-box"><label>이름</label><div class="ws-meta-line"></div></div>
+        <div class="ws-meta-box"><label>날짜</label><div class="ws-meta-line"></div></div>
+      </div>
+      <div class="ws-sec">
+        <div class="ws-sec-title"><i data-lucide="map-pin" style="width:13px;height:13px;"></i> 논술 주제 및 배경</div>
+        <div style="padding:12px 14px;background:var(--blue-light);border-radius:var(--r-sm);margin-bottom:10px;">
+          <p style="font-size:14px;font-weight:700;color:var(--blue-mid);margin-bottom:7px;">${data.topic}</p>
+          <p style="font-size:13px;line-height:1.7;">${data.background}</p>
+        </div>
+        <div style="margin-top:8px;"><div style="font-size:11.5px;font-weight:700;margin-bottom:6px;color:var(--gray-600);">핵심 키워드</div><div class="kw-row">${kws}</div></div>
+      </div>
+      <div class="ws-sec">
+        <div class="ws-sec-title"><i data-lucide="edit-3" style="width:13px;height:13px;"></i> 개요 작성표</div>
+        <table class="ws-outline">
+          <tr><th>서론</th><td><div class="ws-hint">${data.outlineIntro}</div></td></tr>
+          ${bodyRows}
+          <tr><th>결론</th><td><div class="ws-hint">${data.outlineConclusion}</div></td></tr>
+        </table>
+      </div>
+      <div class="ws-sec">
+        <div class="ws-sec-title"><i data-lucide="pencil-line" style="width:13px;height:13px;"></i> 논술 작성 (${chars}자 목표)</div>
+        <div class="ws-write-box"></div>
+      </div>
+      <div class="ws-sec">
+        <div class="ws-sec-title"><i data-lucide="search-check" style="width:13px;height:13px;"></i> 자기 점검 체크리스트</div>
+        <div class="ws-checklist">${checks}</div>
+      </div>
+    </div>
+    <button class="print-btn" onclick="window.print()">
+      <i data-lucide="printer" style="width:14px;height:14px;"></i>
+      학습지 인쇄하기
+    </button>`;
+}
+
+// ─────────────────────────────────────────
+// TAB③ 루브릭
+// ─────────────────────────────────────────
+async function genRubric(level, field, type, bodyParas) {
+  setTabState('rubric','loading');
+  const bdMap = { elem:'2문단, 중심문장', mid:'3문단, 두괄식', high:'4문단, 두괄식+반론처리' };
+  const bd = bdMap[state.level] || bdMap.high;
+  const prompt = `${level} 논술 평가 루브릭을 만들어주세요.
+조건: 분야: ${field}, 유형: ${type}, 5개 영역 × 20점 = 100점, 본론: ${bd}
+등급: 상(17~20점) / 중(11~16점) / 하(1~10점)
+JSON 형식으로만 응답:
+{
+  "areas": [
+    {"name":"① 서론 구성","item":"평가 항목","hi":"상 기준","mid":"중 기준","lo":"하 기준"},
+    {"name":"② 본론 구성","item":"평가 항목","hi":"상 기준","mid":"중 기준","lo":"하 기준"},
+    {"name":"③ 근거·논증","item":"평가 항목","hi":"상 기준","mid":"중 기준","lo":"하 기준"},
+    {"name":"④ 결론","item":"평가 항목","hi":"상 기준","mid":"중 기준","lo":"하 기준"},
+    {"name":"⑤ 논리성·표현","item":"평가 항목","hi":"상 기준","mid":"중 기준","lo":"하 기준"}
+  ]
+}
+${level}에 맞는 구체적이고 실용적인 기준으로 작성해주세요.`;
+  try {
+    const raw  = await callClaude(prompt);
+    const data = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    renderRubric(data, level, field, type);
+    setTabState('rubric','result');
+    lucide.createIcons();
+  } catch(e) { setTabState('rubric','empty'); throw e; }
+}
+
+function renderRubric(data, level, field, type) {
+  const areas = data.areas || [];
+  const rows = areas.map((a,i) => `
+    <tr>
+      <td><div class="ra-name">${a.name}</div><div class="ra-sub">${a.item}</div></td>
+      <td><div class="score-pts">20점</div></td>
+      <td><div class="sc-hi">${a.hi}</div></td>
+      <td><div class="sc-mid">${a.mid}</div></td>
+      <td><div class="sc-lo">${a.lo}</div></td>
+    </tr>`).join('');
+
+  const scoreRows = areas.map((a,i) => `
+    <div class="score-row">
+      <div class="score-row-name">${a.name}</div>
+      <div class="score-btns" id="scoreRow${i}">
+        ${[20,18,16,14,12,10,8,6,4,2].map(s=>`<button class="s-btn" onclick="setScore(${i},${s},this)">${s}</button>`).join('')}
+      </div>
+    </div>`).join('');
+
+  const gMap = {
+    elem: [['85~100','잘했어요','gc-a'],['60~84','노력해요','gc-b'],['~59','다시써봐요','gc-c']],
+    mid:  [['85~100','우수','gc-a'],['60~84','보통','gc-b'],['~59','미흡','gc-c']],
+    high: [['85~100','우수','gc-a'],['60~84','보통','gc-b'],['~59','미흡','gc-c']]
+  };
+  const grades = gMap[state.level] || gMap.high;
+  const gcards = grades.map(([s,l,c]) => `
+    <div class="grade-card ${c}">
+      <div class="gc-score">${s}</div>
+      <div class="gc-label">${l}</div>
+    </div>`).join('');
+
+  document.getElementById('rubric-result').innerHTML = `
+    <div class="rubric-top">
+      <div class="rubric-top-left">
+        <h2>${level} 논술 평가 루브릭</h2>
+        <p>${field} · ${type}</p>
+      </div>
+      <div class="rubric-badge">
+        <i data-lucide="award" style="width:14px;height:14px;"></i>
+        5영역 × 20점 = 100점
+      </div>
+    </div>
+    <table class="rubric-tbl">
+      <thead>
+        <tr>
+          <th style="width:26%">평가 영역</th>
+          <th style="width:8%;text-align:center;">배점</th>
+          <th style="width:22%">상 (17~20점)</th>
+          <th style="width:22%">중 (11~16점)</th>
+          <th style="width:22%">하 (1~10점)</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="grade-cards">${gcards}</div>
+    <div class="score-panel">
+      <div class="score-panel-head">
+        <i data-lucide="pen-tool" style="width:14px;height:14px;"></i>
+        학생별 채점 — 점수를 클릭해서 선택
+      </div>
+      ${scoreRows}
+      <div class="score-total">
+        <span class="score-total-label">총점</span>
+        <span class="score-total-val" id="totalScoreDisplay">0 / 100점</span>
+      </div>
+    </div>
+    <button class="print-btn" onclick="window.print()">
+      <i data-lucide="printer" style="width:14px;height:14px;"></i>
+      루브릭 인쇄하기
+    </button>`;
+  window._scores = new Array(areas.length).fill(0);
+}
+
+function setScore(idx, val, btn) {
+  window._scores = window._scores || [];
+  window._scores[idx] = val;
+  document.querySelectorAll(`#scoreRow${idx} .s-btn`).forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  const total = window._scores.reduce((a,b) => a+b, 0);
+  document.getElementById('totalScoreDisplay').textContent = total + ' / 100점';
+}
+
+// ─────────────────────────────────────────
+// TAB④ 학습 가이드
+// ─────────────────────────────────────────
+async function genGuide(level, field, type, bodyParas) {
+  setTabState('guide','loading');
+  const prompt = `당신은 한국 논술 전문 교사입니다.
+${level} ${type} 논술 교사 지도서를 만들어주세요. 분야: ${field}, 본론 ${bodyParas}문단 기준.
+JSON 형식으로만 응답:
+{
+  "typeSummary": "이 논술 유형이 무엇인지 학생 눈높이 2문장 설명",
+  "flowSteps": [
+    {"part":"서론","color":"b","label":"핵심역할"},
+    {"part":"본론①","color":"g","label":"핵심역할"},
+    {"part":"본론②","color":"g","label":"핵심역할"},
+    ${bodyParas>=3?'{"part":"본론③","color":"g","label":"핵심역할"},':''}
+    ${bodyParas>=4?'{"part":"본론④","color":"c","label":"핵심역할"},':''}
+    {"part":"결론","color":"a","label":"핵심역할"}
+  ],
+  "introSteps": [
+    {"title":"단도직입 문장","desc":"쓰는 방법","example":"예시 문장"},
+    {"title":"문제제기","desc":"쓰는 방법","example":"예시 문장"},
+    {"title":"필요성 제기","desc":"쓰는 방법","example":"예시 문장"}
+  ],
+  "bodySteps": [
+    {"title":"두괄식 중심문장","desc":"쓰는 방법","example":"예시 문장"},
+    {"title":"근거 제시","desc":"쓰는 방법","example":"예시 패턴"},
+    {"title":"문단 연결","desc":"쓰는 방법","example":"연결어 예시"}
+  ],
+  "conclusionSteps": [
+    {"title":"단도직입 정리","desc":"쓰는 방법","example":"예시"},
+    {"title":"본론 압축 요약","desc":"쓰는 방법","example":"예시"},
+    {"title":"제언·전망","desc":"쓰는 방법","example":"예시"}
+  ],
+  "teacherTip": "교사가 수업 중 활용할 핵심 발문 2~3가지",
+  "studentPrompt": "학생에게 직접 던질 수 있는 생각 자극 질문",
+  "commonMistakes": ["흔한 실수 1","흔한 실수 2","흔한 실수 3"]
+}`;
+  try {
+    const raw  = await callClaude(prompt);
+    const data = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    renderGuide(data, level, field, type);
+    setTabState('guide','result');
+    lucide.createIcons();
+  } catch(e) { setTabState('guide','empty'); throw e; }
+}
+
+function renderGuide(data, level, field, type) {
+  const fnMap = { b:'fn-b', g:'fn-g', a:'fn-a', c:'fn-c', p:'fn-p' };
+  const flow = (data.flowSteps||[]).map((f,i) => {
+    const cls = fnMap[f.color] || 'fn-b';
+    return `${i>0?'<div class="flow-arr">→</div>':''}
+      <div class="flow-node ${cls}">
+        <div class="fn-title">${f.part}</div>
+        <div class="fn-sub">${f.label}</div>
+      </div>`;
+  }).join('');
+
+  const stepsHTML = (steps, iconName) => (steps||[]).map(s => `
+    <div class="guide-step-item">
+      <div class="gsi-icon"><i data-lucide="${iconName}" style="width:13px;height:13px;"></i></div>
+      <div class="gsi-body">
+        <strong>${s.title}</strong>
+        <p>${s.desc}</p>
+        ${s.example ? `<div class="gsi-example"><strong>예시:</strong> ${s.example}</div>` : ''}
+      </div>
+    </div>`).join('');
+
+  const mistakes = (data.commonMistakes||[]).map(m => `
+    <div class="mistake-item">
+      <i data-lucide="x-circle" style="width:14px;height:14px;"></i>
+      <span>${m}</span>
+    </div>`).join('');
+
+  document.getElementById('guide-result').innerHTML = `
+    <div class="guide-hero">
+      <div class="guide-hero-top">
+        <div>
+          <h3>교사 지도서 — ${type}</h3>
+          <p>${level} · ${field}</p>
+        </div>
+        <span class="guide-type-pill">${type}</span>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-head"><div class="step-num sn-g">1</div><span>이 논술 유형이란?</span></div>
+      <div class="guide-card-body">
+        <div class="type-summary">${data.typeSummary}</div>
+        <div class="flow-row">${flow}</div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-head"><div class="step-num sn-b">2</div><span>서론 지도 방법</span></div>
+      <div class="guide-card-body">
+        ${stepsHTML(data.introSteps, 'play-circle')}
+        <div class="tip-card"><p><strong>교사 발문 TIP:</strong> ${data.teacherTip}</p></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-head"><div class="step-num sn-g">3</div><span>본론 지도 방법</span></div>
+      <div class="guide-card-body">
+        ${stepsHTML(data.bodySteps, 'align-left')}
+        <div class="gsi-example" style="margin-top:4px;padding:10px 14px;">
+          <strong>학생 발문:</strong> ${data.studentPrompt}
+        </div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-head"><div class="step-num sn-a">4</div><span>결론 지도 방법</span></div>
+      <div class="guide-card-body">
+        ${stepsHTML(data.conclusionSteps, 'flag')}
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-head"><div class="step-num sn-r">⚠</div><span>학생들이 자주 하는 실수</span></div>
+      <div class="guide-card-body">
+        ${mistakes}
+      </div>
+    </div>
+
+    <button class="print-btn" onclick="window.print()">
+      <i data-lucide="printer" style="width:14px;height:14px;"></i>
+      지도서 인쇄하기
+    </button>`;
+}
+
+// ─────────────────────────────────────────
+// ─────────────────────────────────────────
+// MODE B — 사진 업로드 / 텍스트 입력 / AI 채점
+// ─────────────────────────────────────────
+
+// 입력 방식 탭 전환
+let inputMode = 'img'; // 'img' | 'txt'
+function switchInputTab(mode) {
+  inputMode = mode;
+  const imgPanel = document.getElementById('inputImg');
+  const txtPanel = document.getElementById('inputTxt');
+  const imgBtn   = document.getElementById('tabImgBtn');
+  const txtBtn   = document.getElementById('tabTxtBtn');
+  if (mode === 'img') {
+    imgPanel.style.display = 'block';
+    txtPanel.style.display = 'none';
+    imgBtn.style.cssText += 'border-color:var(--accent);background:var(--accent-light);color:var(--accent-mid);font-weight:700;';
+    txtBtn.style.cssText += 'border-color:var(--border);background:var(--white);color:var(--gray-500);font-weight:500;';
+  } else {
+    imgPanel.style.display = 'none';
+    txtPanel.style.display = 'block';
+    txtBtn.style.cssText += 'border-color:var(--accent);background:var(--accent-light);color:var(--accent-mid);font-weight:700;';
+    imgBtn.style.cssText += 'border-color:var(--border);background:var(--white);color:var(--gray-500);font-weight:500;';
+    document.getElementById('essayTextInput').focus();
+  }
+  lucide.createIcons();
+}
+
+// 텍스트 글자수 카운터
+function updateTextCount() {
+  const txt = document.getElementById('essayTextInput').value;
+  document.getElementById('textCount').textContent = txt.length.toLocaleString() + '자';
+}
+
+// 텍스트 초기화
+function clearTextInput() {
+  document.getElementById('essayTextInput').value = '';
+  document.getElementById('textCount').textContent = '0자';
+}
+
+// 사진 업로드 처리
+function handleFileUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const b64 = e.target.result;
+    state.uploadedBase64    = b64.split(',')[1];
+    state.uploadedImageType = file.type || 'image/jpeg';
+    document.getElementById('previewArea').innerHTML = `
+      <div class="preview-img" style="margin-top:10px;">
+        <img src="${b64}" alt="업로드된 학생 답안">
+      </div>
+      <div class="preview-ok">
+        <i data-lucide="check-circle-2" style="width:14px;height:14px;"></i>
+        이미지 업로드 완료 — 채점 시작 버튼을 눌러주세요
+      </div>`;
+    lucide.createIcons();
+  };
+  reader.readAsDataURL(file);
+}
+
+// 드래그앤드롭
+const dz = document.getElementById('uploadZone');
+dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('over');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) {
+    const dt = new DataTransfer();
+    dt.items.add(f);
+    document.getElementById('fileInput').files = dt.files;
+    handleFileUpload(document.getElementById('fileInput'));
+  }
+});
+
+// AI 채점 메인
+async function evaluateEssay() {
+  if (!state.apiKey) return alert('Claude API 키를 먼저 입력해주세요.');
+  if (!state.levelB) return alert('학교급을 선택해주세요.');
+
+  // 입력 방식에 따라 데이터 확인
+  const essayText = document.getElementById('essayTextInput')?.value.trim() || '';
+  if (inputMode === 'img' && !state.uploadedBase64) {
+    return alert('학생 논술 사진을 먼저 업로드해주세요.');
+  }
+  if (inputMode === 'txt' && !essayText) {
+    return alert('논술문을 텍스트 입력란에 붙여넣기 해주세요.');
+  }
+
+  const btn = document.getElementById('evalBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i data-lucide="loader-circle" style="width:16px;height:16px;animation:spin .75s linear infinite;"></i> 채점 중...';
+  lucide.createIcons();
+
+  const loadingMsg = inputMode === 'img'
+    ? '손글씨 인식 → 5개 영역 채점 → 맞춤 피드백 생성'
+    : '텍스트 분석 → 5개 영역 채점 → 맞춤 피드백 생성';
+
+  document.getElementById('evalResultArea').innerHTML = `
+    <div class="loading-state" style="min-height:400px;">
+      <div class="spinner-ring"></div>
+      <div class="loading-text">학생 글 분석 중...</div>
+      <div class="loading-sub">${loadingMsg}</div>
+    </div>`;
+
+  const levelName = levelConfig[state.levelB].name;
+
+  // ── 공통 루브릭 평가 기준
+  const rubric = `평가 기준: 5개 영역 × 20점 = 100점 만점
+① 서론 구성 (단도직입·문제제기·필요성) — 상(17~20) / 중(11~16) / 하(1~10)
+② 본론 구성 (문단 구성·두괄식 중심문장) — 상(17~20) / 중(11~16) / 하(1~10)
+③ 근거·논증 (객관적 근거·사례·통계) — 상(17~20) / 중(11~16) / 하(1~10)
+④ 결론 완성도 (단도직입·요약·제언) — 상(17~20) / 중(11~16) / 하(1~10)
+⑤ 논리성·표현 (일관성·어휘·맞춤법) — 상(17~20) / 중(11~16) / 하(1~10)`;
+
+  const jsonFormat = `JSON 형식으로만 응답 (다른 말 없이):
+{
+  "inputSummary": "논술 내용 요약 2~3문장",
+  "scores": [
+    {"area":"① 서론 구성","score":숫자,"feedback":"구체적 피드백 1~2문장"},
+    {"area":"② 본론 구성","score":숫자,"feedback":"구체적 피드백 1~2문장"},
+    {"area":"③ 근거·논증","score":숫자,"feedback":"구체적 피드백 1~2문장"},
+    {"area":"④ 결론 완성도","score":숫자,"feedback":"구체적 피드백 1~2문장"},
+    {"area":"⑤ 논리성·표현","score":숫자,"feedback":"구체적 피드백 1~2문장"}
+  ],
+  "totalScore": 총점숫자,
+  "overallFeedback": "전체 총평 3~4문장 격려 포함",
+  "improvementPoints": ["개선점1","개선점2","개선점3"]
+}`;
+
+  try {
+    let raw;
+
+    if (inputMode === 'img') {
+      // ── 사진 모드: 이미지 전송
+      const prompt = `당신은 한국 ${levelName} 논술 전문 교사입니다.
+이 이미지에 담긴 학생의 손글씨 논술 답안을 읽고 채점해주세요.
+
+${rubric}
+
+${jsonFormat}`;
+      raw = await callClaude(prompt, '', { type: state.uploadedImageType, data: state.uploadedBase64 });
+
+    } else {
+      // ── 텍스트 모드: 텍스트 전송
+      const prompt = `당신은 한국 ${levelName} 논술 전문 교사입니다.
+아래 학생이 작성한 논술문을 읽고 채점해주세요.
+
+=== 학생 논술문 시작 ===
+${essayText}
+=== 학생 논술문 끝 ===
+
+${rubric}
+
+${jsonFormat}`;
+      raw = await callClaude(prompt);
+    }
+
+    const data = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    renderEvalResult(data, levelName, inputMode);
+    lucide.createIcons();
+
+  } catch(e) {
+    document.getElementById('evalResultArea').innerHTML = `
+      <div class="empty-state" style="min-height:300px;">
+        <div class="empty-icon"><i data-lucide="alert-circle" style="width:28px;height:28px;color:var(--red);"></i></div>
+        <h3>채점 오류</h3>
+        <p>${e.message}</p>
+      </div>`;
+    lucide.createIcons();
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i data-lucide="scan-search" style="width:16px;height:16px;"></i> 다시 채점하기';
+  lucide.createIcons();
+}
+
+function renderEvalResult(data, levelName) {
+  const total = data.totalScore || 0;
+  const gradeText = total >= 85 ? '우수' : total >= 60 ? '보통' : '미흡';
+
+  const rows = (data.scores||[]).map(s => {
+    const cls = s.score >= 17 ? 'eb-hi' : s.score >= 11 ? 'eb-mid' : 'eb-lo';
+    return `<div class="eval-row">
+      <div class="eval-area">${s.area}</div>
+      <div><span class="eval-badge ${cls}">${s.score}점</span></div>
+      <div class="eval-fb">${s.feedback}</div>
+    </div>`;
+  }).join('');
+
+  const impItems = (data.improvementPoints||[]).map(p => `
+    <div class="improve-item">
+      <i data-lucide="arrow-right-circle" style="width:14px;height:14px;"></i>
+      <span>${p}</span>
+    </div>`).join('');
+
+  document.getElementById('evalResultArea').innerHTML = `
+    <div style="display:flex;flex-direction:column;height:100%;">
+      <div class="eval-header">
+        <div class="eval-header-left">
+          <h3>AI 채점 결과 — ${levelName}</h3>
+          <p>${data.inputSummary || data.recognizedText || ''}</p>
+        </div>
+        <div class="eval-score-big">
+          <div class="big-num">${total}</div>
+          <div class="big-lbl">${gradeText}</div>
+        </div>
+      </div>
+      <div class="eval-body">
+        ${rows}
+        <div class="eval-summary"><strong>총평:</strong> ${data.overallFeedback}</div>
+        ${impItems ? `<div class="improve-box">
+          <div class="improve-head">
+            <i data-lucide="lightbulb" style="width:14px;height:14px;"></i>
+            개선 포인트
+          </div>
+          ${impItems}
+        </div>` : ''}
+        <button class="print-btn" onclick="window.print()">
+          <i data-lucide="printer" style="width:14px;height:14px;"></i>
+          채점 결과 인쇄하기
+        </button>
+      </div>
+    </div>`;
+}
+</script>
+</body>
+</html>
